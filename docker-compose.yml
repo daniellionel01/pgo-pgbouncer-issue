@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:17
+    container_name: glue-db
+    environment:
+      POSTGRES_USER: daniel
+      POSTGRES_PASSWORD: glue
+      POSTGRES_DB: glue
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - glue-db-data:/var/lib/postgresql/data/pgdata
+      - ./postgres.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - "5433:5432"
+    networks:
+      - glue-net
+    restart: unless-stopped
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+
+  pgbouncer:
+    image: bitnami/pgbouncer:latest
+    container_name: glue-pgbouncer
+    depends_on:
+      - db
+    environment:
+      POSTGRESQL_HOST: db
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_USERNAME: daniel
+      POSTGRESQL_PASSWORD: glue
+
+      PGBOUNCER_DATABASE: glue
+      PGBOUNCER_AUTH_TYPE: scram-sha-256
+
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 1000
+      PGBOUNCER_DEFAULT_POOL_SIZE: 50
+      PGBOUNCER_RESERVE_POOL_SIZE: 10
+      PGBOUNCER_MAX_USER_CONNECTIONS: 100
+
+      PGBOUNCER_SERVER_RESET_QUERY: "DISCARD ALL"
+      PGBOUNCER_SERVER_CHECK_DELAY: 30
+      PGBOUNCER_SERVER_LIFETIME: 3600
+      PGBOUNCER_SERVER_IDLE_TIMEOUT: 600
+
+      PGBOUNCER_LISTEN_PORT: 6432
+      PGBOUNCER_ADMIN_USERS: daniel
+    ports:
+      - "5432:6432"
+    networks:
+      - glue-net
+    restart: unless-stopped
+
+volumes:
+  glue-db-data:
+    driver: local
+
+networks:
+  glue-net:
+    driver: bridge
