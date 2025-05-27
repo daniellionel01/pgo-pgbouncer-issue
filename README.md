@@ -5,7 +5,10 @@ This is a simple Erlang application to test PgBouncer connectivity using the pgo
 ## Setup
 
 1. Make sure you have Erlang/OTP and rebar3 installed
-2. Make sure PgBouncer is running and configured to connect to your PostgreSQL database
+2. Start the PostgreSQL database and PgBouncer using Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
 3. Update the connection parameters in `config/sys.config` if needed
 
 ## Usage
